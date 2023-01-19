@@ -1,0 +1,13 @@
+diff --git a/certora/munged/syndicate/Syndicate.sol b/certora/munged/syndicate/Syndicate.sol
+index 42d6159..3589dc8 100644
+--- a/certora/munged/syndicate/Syndicate.sol
++++ b/certora/munged/syndicate/Syndicate.sol
+@@ -275,8 +275,6 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
+             sETHStakedBalanceForKnot[_blsPubKey][msg.sender] -= _sETHAmount;
+ 
+             uint256 accumulatedETHPerShare = _getCorrectAccumulatedETHPerFreeFloatingShareForBLSPublicKey(_blsPubKey);
+-            sETHUserClaimForKnot[_blsPubKey][msg.sender] =
+-                (accumulatedETHPerShare * sETHStakedBalanceForKnot[_blsPubKey][msg.sender]) / PRECISION;
+ 
+             bool transferResult = sETH.transfer(_sETHRecipient, _sETHAmount);
+             if (!transferResult) revert TransferFailed();

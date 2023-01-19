@@ -1,0 +1,7 @@
+.certora*
+.last_confs/
+node_modules/
+*.iml
+artifacts/
+cache/
+resource_errors.json

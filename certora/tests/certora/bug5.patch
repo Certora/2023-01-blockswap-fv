@@ -1,0 +1,13 @@
+diff --git a/certora/munged/syndicate/Syndicate.sol b/certora/munged/syndicate/Syndicate.sol
+index 42d6159..ae3de2d 100644
+--- a/certora/munged/syndicate/Syndicate.sol
++++ b/certora/munged/syndicate/Syndicate.sol
+@@ -482,7 +482,7 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
+ 
+     /// @notice Amount of ETH per collateralized share that hasn't yet been allocated to each share
+     function getUnprocessedETHForAllCollateralizedSlot() public view returns (uint256) {
+-        return ((calculateETHForFreeFloatingOrCollateralizedHolders() - lastSeenETHPerCollateralizedSlotPerKnot) / numberOfRegisteredKnots);
++        return calculateETHForFreeFloatingOrCollateralizedHolders() - lastSeenETHPerCollateralizedSlotPerKnot;
+     }
+ 
+     /// @notice New accumulated ETH per free floating share that hasn't yet been applied

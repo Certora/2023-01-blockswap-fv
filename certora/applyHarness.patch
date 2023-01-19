@@ -1,0 +1,602 @@
+diff -ruN interfaces/ISlotSettlementRegistry.sol interfaces/ISlotSettlementRegistry.sol
+--- interfaces/ISlotSettlementRegistry.sol	2023-01-16 09:35:02
++++ interfaces/ISlotSettlementRegistry.sol	2023-01-19 00:39:21
+@@ -25,7 +25,7 @@
+     /// @param _isKickRequired Whether the KNOT needs to be kicked from the protocol due to misbehaving on the beacon chain
+     function slashAndBuySlot(
+         address _stakeHouse,
+-        bytes calldata _memberId,
++        bytes32 _memberId,
+         address _slasher,
+         uint256 _slashAmount,
+         uint256 _buyAmount,
+@@ -40,7 +40,7 @@
+     /// @param _isKickRequired Whether the KNOT needs to be kicked for severe cheating (double proposal and voting or surround voting)
+     function slash(
+         address _stakeHouse,
+-        bytes calldata _memberId,
++        bytes32 _memberId,
+         uint256 _amount,
+         bool _isKickRequired
+     ) external;
+@@ -53,7 +53,7 @@
+     /// @param _recipient Recipient of the sETH shares that will be backed by the SLOT purchased
+     function buySlashedSlot(
+         address _stakeHouse,
+-        bytes calldata _memberId,
++        bytes32 _memberId,
+         uint256 _amount,
+         address _recipient
+     ) external;
+@@ -65,7 +65,7 @@
+ 
+     /// @notice Total amount of SLOT that has been slashed but not purchased
+     /// @param _memberId BLS public key of KNOT
+-    function currentSlashedAmountForKnot(bytes calldata _memberId) external view returns (uint256 currentSlashedAmount);
++    function currentSlashedAmountForKnot(bytes32 _memberId) external view returns (uint256 currentSlashedAmount);
+ 
+     /// @notice Total amount of collateralised sETH owned by an account for a given KNOT
+     /// @param _stakeHouse Address of Stakehouse registry contract
+@@ -74,7 +74,7 @@
+     function totalUserCollateralisedSETHBalanceForKnot(
+         address _stakeHouse,
+         address _user,
+-        bytes calldata _memberId
++        bytes32 _memberId
+     ) external view returns (uint256);
+ 
+     /// @notice Total collateralised sETH owned by a user across all KNOTs in the house
+@@ -113,4 +113,41 @@
+     /// @notice Amount of sETH per SLOT for a given house calculated as total dETH minted in house / total SLOT from all KNOTs
+     /// @param _stakeHouse Address of the Stakehouse registry in order to fetch its exchange rate
+     function exchangeRate(address _stakeHouse) external view returns (uint256);
++
++    /// @notice Returns the address of the sETH token for a given Stakehouse registry
++    function stakeHouseShareTokens(address _stakeHouse) external view returns (address);
++
++    /// @notice Returns the address of the associated house for an sETH token
++    function shareTokensToStakeHouse(address _sETHToken) external view returns (address);
++
++    /// @notice Returns the total amount of SLOT slashed at the Stakehouse level
++    function stakeHouseCurrentSLOTSlashed(address _stakeHouse) external view returns (uint256);
++
++    /// @notice Returns the total amount of SLOT slashed for a KNOT
++    function currentSlashedAmountOfSLOTForKnot(bytes32 _blsPublicKey) external view returns (uint256);
++
++    /// @notice Total dETH minted by adding knots and minting inflation rewards within a house
++    function dETHMintedInHouse(address _stakeHouse) external view returns (uint256);
++
++    /// @notice Total SLOT minted for all KNOTs that have not rage quit the house
++    function activeSlotMintedInHouse(address _stakeHouse) external view returns (uint256);
++
++    /// @notice Total collateralised SLOT minted for all KNOTs that have not rage quit the house
++    function activeCollateralisedSlotMintedInHouse(address _stakeHouse) external view returns (uint256);
++
++    /// @notice Helper for calculating an active sETH balance from a SLOT amount
++    /// @param _stakeHouse Target Stakehouse registry - each has their own exchange rate
++    /// @param _slotAmount SLOT amount in wei
++    function sETHForSLOTBalance(address _stakeHouse, uint256 _slotAmount) external view returns (uint256);
++
++    /// @notice Helper for calculating a SLOT balance from an sETH amount
++    /// @param _stakeHouse Target Stakehouse registry - each has their own exchange rate
++    /// @param _sETHAmount sETH amount in wei
++    function slotForSETHBalance(address _stakeHouse, uint256 _sETHAmount) external view returns (uint256);
++
++    function numberOfCollateralisedSlotOwnersForKnot(bytes32 _memberId) external view returns (uint256);
++
++    function getCollateralisedOwnerAtIndex(bytes32 _memberId, uint256 _index) external view returns (address);
++
++    function totalUserCollateralisedSLOTBalanceForKnot(address _stakeHouse, address _user, bytes32 _knot) external view returns(uint256);
+ }
+diff -ruN interfaces/IStakeHouseUniverse.sol interfaces/IStakeHouseUniverse.sol
+--- interfaces/IStakeHouseUniverse.sol	2023-01-16 09:35:02
++++ interfaces/IStakeHouseUniverse.sol	2023-01-19 00:39:21
+@@ -24,7 +24,7 @@
+     function newStakeHouse(
+         address _summoner,
+         string calldata _ticker,
+-        bytes calldata _firstMember,
++        bytes32  _firstMember,
+         uint256 _savETHIndexId
+     ) external returns (address);
+ 
+@@ -35,7 +35,7 @@
+     /// @param _savETHIndexId ID of the savETH registry index that will receive savETH for the KNOT. Set to zero to create a new index owned by _applicant
+     function addMemberToExistingHouse(
+         address _stakeHouse,
+-        bytes calldata _memberId,
++        bytes32  _memberId,
+         address _applicant,
+         uint256 _brandTokenId,
+         uint256 _savETHIndexId
+@@ -49,7 +49,7 @@
+     /// @param _savETHIndexId ID of the savETH registry index that will receive savETH for the KNOT. Set to zero to create a new index owned by _applicant
+     function addMemberToHouseAndCreateBrand(
+         address _stakeHouse,
+-        bytes calldata _memberId,
++        bytes32  _memberId,
+         address _applicant,
+         string calldata _ticker,
+         uint256 _savETHIndexId
+@@ -62,7 +62,7 @@
+     /// @param _amountOfETHInDepositQueue Amount of ETH below 1 ETH that is yet to be sent to the deposit contract
+     function rageQuitKnot(
+         address _stakeHouse,
+-        bytes calldata _memberId,
++        bytes32  _memberId,
+         address _rageQuitter,
+         uint256 _amountOfETHInDepositQueue
+     ) external;
+@@ -100,7 +100,7 @@
+ 
+     /// @notice Get all info about a StakeHouse KNOT (a member a.k.a a validator)
+     /// @param _memberId ID of member (Validator public key) assigned to StakeHouse
+-    function stakeHouseKnotInfo(bytes memory _memberId) external view returns (
++    function stakeHouseKnotInfo(bytes32 _memberId) external view returns (
+         address stakeHouse,     // Address of registered StakeHouse
+         address sETHAddress,    // Address of sETH address associated with StakeHouse
+         address applicant,      // Address of ETH account that added the member to the StakeHouse
+@@ -108,4 +108,7 @@
+         uint256 flags,          // Flags associated with the member
+         bool isActive           // Whether the member is active or knot
+     );
++
++    /// @notice Returns the address of the Stakehouse that a KNOT is associated with
++    function memberKnotToStakeHouse(bytes calldata _blsPublicKey) external view returns (address);
+ }
+diff -ruN interfaces/ISyndicateInit.sol interfaces/ISyndicateInit.sol
+--- interfaces/ISyndicateInit.sol	2023-01-16 09:35:02
++++ interfaces/ISyndicateInit.sol	2023-01-19 00:39:21
+@@ -4,10 +4,12 @@
+ 
+ /// @dev Interface for initializing a newly deployed Syndicate
+ interface ISyndicateInit {
++    type blsKey is bytes32;
++
+     function initialize(
+         address _contractOwner,
+         uint256 _priorityStakingEndBlock,
+         address[] memory _priorityStakers,
+-        bytes[] memory _blsPubKeysForSyndicateKnots
++        blsKey[] memory _blsPubKeysForSyndicateKnots
+     ) external;
+ }
+\ No newline at end of file
+diff -ruN syndicate/Syndicate.sol syndicate/Syndicate.sol
+--- syndicate/Syndicate.sol	2023-01-18 14:03:34
++++ syndicate/Syndicate.sol	2023-01-19 00:39:21
+@@ -3,7 +3,7 @@
+ // SPDX-License-Identifier: MIT
+ 
+ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+-import { StakehouseAPI } from "@blockswaplab/stakehouse-solidity-api/contracts/StakehouseAPI.sol";
++import { StakehouseAPI } from "../../harnesses/SimplifiedStakehouseAPI.sol";
+ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+@@ -43,25 +43,25 @@
+     event UpdateAccruedETH(uint256 unprocessed);
+ 
+     /// @notice Emitted when new collateralized SLOT owners for a knot prompts re-calibration
+-    event CollateralizedSLOTReCalibrated(bytes BLSPubKey);
++    event CollateralizedSLOTReCalibrated(blsKey BLSPubKey);
+ 
+     /// @notice Emitted when a new KNOT is associated with the syndicate contract
+-    event KNOTRegistered(bytes BLSPubKey);
++    event KNOTRegistered(blsKey BLSPubKey);
+ 
+     /// @notice Emitted when a KNOT is de-registered from the syndicate
+-    event KnotDeRegistered(bytes BLSPubKey);
++    event KnotDeRegistered(blsKey BLSPubKey);
+ 
+     /// @notice Emitted when a priority staker is added to the syndicate
+     event PriorityStakerRegistered(address indexed staker);
+ 
+     /// @notice Emitted when a user stakes free floating sETH tokens
+-    event Staked(bytes BLSPubKey, uint256 amount);
++    event Staked(blsKey BLSPubKey, uint256 amount);
+ 
+     /// @notice Emitted when a user unstakes free floating sETH tokens
+-    event UnStaked(bytes BLSPubKey, uint256 amount);
++    event UnStaked(blsKey BLSPubKey, uint256 amount);
+ 
+     /// @notice Emitted when either an sETH staker or collateralized SLOT owner claims ETH
+-    event ETHClaimed(bytes BLSPubKey, address indexed user, address recipient, uint256 claim, bool indexed isCollateralizedClaim);
++    event ETHClaimed(blsKey BLSPubKey, address indexed user, address recipient, uint256 claim, bool indexed isCollateralizedClaim);
+ 
+     /// @notice Precision used in rewards calculations for scaling up and down
+     uint256 public constant PRECISION = 1e24;
+@@ -88,7 +88,7 @@
+     uint256 public numberOfRegisteredKnots;
+ 
+     /// @notice Informational - is the knot registered to this syndicate or not - the node should point to this contract
+-    mapping(bytes => bool) public isKnotRegistered;
++    mapping(blsKey => bool) public isKnotRegistered;
+ 
+     /// @notice Block number after which if there are sETH staking slots available, it can be supplied by anyone on the market
+     uint256 public priorityStakingEndBlock;
+@@ -97,29 +97,30 @@
+     mapping(address => bool) public isPriorityStaker;
+ 
+     /// @notice Total amount of free floating sETH staked
+-    mapping(bytes => uint256) public sETHTotalStakeForKnot;
++    mapping(blsKey => uint256) public sETHTotalStakeForKnot;
+ 
+     /// @notice Amount of sETH staked by user against a knot
+-    mapping(bytes => mapping(address => uint256)) public sETHStakedBalanceForKnot;
++    mapping(blsKey => mapping(address => uint256)) public sETHStakedBalanceForKnot;
+ 
+     /// @notice Amount of ETH claimed by user from sETH staking
+-    mapping(bytes => mapping(address => uint256)) public sETHUserClaimForKnot;
++    mapping(blsKey => mapping(address => uint256)) public sETHUserClaimForKnot;
+ 
+     /// @notice Total amount of ETH that has been allocated to the collateralized SLOT owners of a KNOT
+-    mapping(bytes => uint256) public totalETHProcessedPerCollateralizedKnot;
++    mapping(blsKey => uint256) public totalETHProcessedPerCollateralizedKnot;
+ 
+     /// @notice Total amount of ETH accrued for the collateralized SLOT owner of a KNOT
+-    mapping(bytes => mapping(address => uint256)) public accruedEarningPerCollateralizedSlotOwnerOfKnot;
++    mapping(blsKey => mapping(address => uint256)) public accruedEarningPerCollateralizedSlotOwnerOfKnot;
+ 
+     /// @notice Total amount of ETH claimed by the collateralized SLOT owner of a KNOT
+-    mapping(bytes => mapping(address => uint256)) public claimedPerCollateralizedSlotOwnerOfKnot;
++    mapping(blsKey => mapping(address => uint256)) public claimedPerCollateralizedSlotOwnerOfKnot;
+ 
+     /// @notice Whether a BLS public key, that has been previously registered, is no longer part of the syndicate and its shares (free floating or SLOT) cannot earn any more rewards
+-    mapping(bytes => bool) public isNoLongerPartOfSyndicate;
++    mapping(blsKey => bool) public isNoLongerPartOfSyndicate;
+ 
+     /// @notice Once a BLS public key is no longer part of the syndicate, the accumulated ETH per free floating SLOT share is snapshotted so historical earnings can be drawn down correctly
+-    mapping(bytes => uint256) public lastAccumulatedETHPerFreeFloatingShare;
++    mapping(blsKey => uint256) public lastAccumulatedETHPerFreeFloatingShare;
+ 
++
+     /// @custom:oz-upgrades-unsafe-allow constructor
+     constructor() initializer {}
+ 
+@@ -131,8 +132,8 @@
+         address _contractOwner,
+         uint256 _priorityStakingEndBlock,
+         address[] memory _priorityStakers,
+-        bytes[] memory _blsPubKeysForSyndicateKnots
+-    ) external virtual override initializer {
++        blsKey[] memory _blsPubKeysForSyndicateKnots
++    ) public virtual override initializer { // MUNGED internal => public
+         _initialize(
+             _contractOwner,
+             _priorityStakingEndBlock,
+@@ -144,29 +145,29 @@
+     /// @notice Allows the contract owner to append to the list of knots that are part of the syndicate
+     /// @param _newBLSPublicKeyBeingRegistered List of BLS public keys being added to the syndicate
+     function registerKnotsToSyndicate(
+-        bytes[] calldata _newBLSPublicKeyBeingRegistered
+-    ) external onlyOwner {
++        blsKey[] memory _newBLSPublicKeyBeingRegistered
++    ) public onlyOwner { // MUNGED internal => public
+         // update accrued ETH per SLOT type
+         updateAccruedETHPerShares();
+         _registerKnotsToSyndicate(_newBLSPublicKeyBeingRegistered);
+     }
+ 
+     /// @notice Make knot shares of a registered list of BLS public keys inactive - the action cannot be undone and no further ETH accrued
+-    function deRegisterKnots(bytes[] calldata _blsPublicKeys) external onlyOwner {
++    function deRegisterKnots(blsKey[] memory _blsPublicKeys) public onlyOwner {// MUNGED internal => public
+         updateAccruedETHPerShares();
+         _deRegisterKnots(_blsPublicKeys);
+     }
+ 
+     /// @notice Allows the contract owner to append to the list of priority sETH stakers
+     /// @param _priorityStakers List of staker addresses eligible for sETH staking
+-    function addPriorityStakers(address[] calldata _priorityStakers) external onlyOwner {
++    function addPriorityStakers(address[] memory _priorityStakers) public onlyOwner { // MUNGED internal => public
+         updateAccruedETHPerShares();
+         _addPriorityStakers(_priorityStakers);
+     }
+ 
+     /// @notice Should this block be in the future, it means only those listed in the priority staker list can stake sETH
+     /// @param _endBlock Arbitrary block number after which anyone can stake up to 4 SLOT in sETH per KNOT
+-    function updatePriorityStakingBlock(uint256 _endBlock) external onlyOwner {
++    function updatePriorityStakingBlock(uint256 _endBlock) public onlyOwner { // MUNGED internal => public
+         updateAccruedETHPerShares();
+         priorityStakingEndBlock = _endBlock;
+     }
+@@ -199,7 +200,7 @@
+     /// @param _blsPubKeys List of BLS public keys for KNOTs registered with the syndicate
+     /// @param _sETHAmounts Per BLS public key, the total amount of sETH that will be staked (up to 4 collateralized SLOT per KNOT)
+     /// @param _onBehalfOf Allows a caller to specify an address that will be assigned stake ownership and rights to claim
+-    function stake(bytes[] calldata _blsPubKeys, uint256[] calldata _sETHAmounts, address _onBehalfOf) external {
++    function stake(blsKey[] memory _blsPubKeys, uint256[] memory _sETHAmounts, address _onBehalfOf) public { // MUNGED bytes => blsKey calldata => memory & external => public
+         uint256 numOfKeys = _blsPubKeys.length;
+         if (numOfKeys == 0) revert EmptyArray();
+         if (numOfKeys != _sETHAmounts.length) revert InconsistentArrayLengths();
+@@ -209,7 +210,7 @@
+         updateAccruedETHPerShares();
+ 
+         for (uint256 i; i < numOfKeys; ++i) {
+-            bytes memory _blsPubKey = _blsPubKeys[i];
++            blsKey _blsPubKey = _blsPubKeys[i];
+             uint256 _sETHAmount = _sETHAmounts[i];
+ 
+             if (_sETHAmount < 1 gwei) revert FreeFloatingStakeAmountTooSmall();
+@@ -227,7 +228,7 @@
+             sETHStakedBalanceForKnot[_blsPubKey][_onBehalfOf] += _sETHAmount;
+             sETHUserClaimForKnot[_blsPubKey][_onBehalfOf] += (_sETHAmount * accumulatedETHPerFreeFloatingShare) / PRECISION;
+ 
+-            (address stakeHouse,,,,,) = getStakeHouseUniverse().stakeHouseKnotInfo(_blsPubKey);
++            (address stakeHouse,,,,,) = getStakeHouseUniverse().stakeHouseKnotInfo(blsKey.unwrap(_blsPubKey));
+             if (stakeHouse == address(0)) revert KnotIsNotAssociatedWithAStakeHouse();
+             IERC20 sETH = IERC20(getSlotRegistry().stakeHouseShareTokens(stakeHouse));
+             bool transferResult = sETH.transferFrom(msg.sender, address(this), _sETHAmount);
+@@ -245,9 +246,9 @@
+     function unstake(
+         address _unclaimedETHRecipient,
+         address _sETHRecipient,
+-        bytes[] calldata _blsPubKeys,
+-        uint256[] calldata _sETHAmounts
+-    ) external nonReentrant {
++        blsKey[] memory _blsPubKeys, // MUNGED bytes => blsKey & calldata => memory
++        uint256[] memory _sETHAmounts // MUNGED calldata => memory
++    ) public nonReentrant { // MUNGED external => public
+         uint256 numOfKeys = _blsPubKeys.length;
+         if (numOfKeys == 0) revert EmptyArray();
+         if (numOfKeys != _sETHAmounts.length) revert InconsistentArrayLengths();
+@@ -258,11 +259,11 @@
+         _claimAsStaker(_unclaimedETHRecipient, _blsPubKeys);
+ 
+         for (uint256 i; i < numOfKeys; ++i) {
+-            bytes memory _blsPubKey = _blsPubKeys[i];
++            blsKey _blsPubKey = _blsPubKeys[i];
+             uint256 _sETHAmount = _sETHAmounts[i];
+             if (sETHStakedBalanceForKnot[_blsPubKey][msg.sender] < _sETHAmount) revert NothingStaked();
+ 
+-            (address stakeHouse,,,,,) = getStakeHouseUniverse().stakeHouseKnotInfo(_blsPubKey);
++            (address stakeHouse,,,,,) = getStakeHouseUniverse().stakeHouseKnotInfo(blsKey.unwrap(_blsPubKey));
+             IERC20 sETH = IERC20(getSlotRegistry().stakeHouseShareTokens(stakeHouse));
+ 
+             // Only decrease totalFreeFloatingShares in the event that the knot is still active in the syndicate
+@@ -287,15 +288,15 @@
+     /// @notice Claim ETH cashflow from the syndicate as an sETH staker proportional to how much the user has staked
+     /// @param _recipient Address that will receive the share of ETH funds
+     /// @param _blsPubKeys List of BLS public keys that the caller has staked against
+-    function claimAsStaker(address _recipient, bytes[] calldata _blsPubKeys) public nonReentrant {
++    function claimAsStaker(address _recipient, blsKey[] memory _blsPubKeys) public nonReentrant {
+         _claimAsStaker(_recipient, _blsPubKeys);
+     }
+ 
+     /// @param _blsPubKeys List of BLS public keys that the caller has staked against
+     function claimAsCollateralizedSLOTOwner(
+         address _recipient,
+-        bytes[] calldata _blsPubKeys
+-    ) external nonReentrant {
++        blsKey[] memory _blsPubKeys // MUNGED bytes[] => blsKey[] & calldata => memory
++    ) public nonReentrant { // MUNGED external => public
+         uint256 numOfKeys = _blsPubKeys.length;
+         if (numOfKeys == 0) revert EmptyArray();
+         if (_recipient == address(0)) revert ZeroAddress();
+@@ -306,7 +307,7 @@
+ 
+         uint256 totalToTransfer;
+         for (uint256 i; i < numOfKeys; ++i) {
+-            bytes memory _blsPubKey = _blsPubKeys[i];
++            blsKey _blsPubKey = _blsPubKeys[i];
+             if (!isKnotRegistered[_blsPubKey]) revert KnotIsNotRegisteredWithSyndicate();
+ 
+             // process newly accrued ETH and distribute it to collateralized SLOT owners for the given knot
+@@ -342,13 +343,13 @@
+ 
+     /// @notice For any new ETH received by the syndicate, at the knot level allocate ETH owed to each collateralized owner
+     /// @param _blsPubKey BLS public key relating to the collateralized owners that need updating
+-    function updateCollateralizedSlotOwnersAccruedETH(bytes memory _blsPubKey) external {
++    function updateCollateralizedSlotOwnersAccruedETH(blsKey _blsPubKey) public { // MUNGED internal => public
+         _updateCollateralizedSlotOwnersLiabilitySnapshot(_blsPubKey);
+     }
+ 
+     /// @notice For any new ETH received by the syndicate, at the knot level allocate ETH owed to each collateralized owner and do it for a batch of knots
+     /// @param _blsPubKeys List of BLS public keys related to the collateralized owners that need updating
+-    function batchUpdateCollateralizedSlotOwnersAccruedETH(bytes[] memory _blsPubKeys) external {
++    function batchUpdateCollateralizedSlotOwnersAccruedETH(blsKey[] memory _blsPubKeys) public { // MUNGED internal => public
+         uint256 numOfKeys = _blsPubKeys.length;
+         if (numOfKeys == 0) revert EmptyArray();
+         for (uint256 i; i < numOfKeys; ++i) {
+@@ -364,7 +365,7 @@
+     /// @notice Calculate the amount of unclaimed ETH for a given BLS publice key + free floating SLOT staker without factoring in unprocessed rewards
+     /// @param _blsPubKey BLS public key of the KNOT that is registered with the syndicate
+     /// @param _user The address of a user that has staked sETH against the BLS public key
+-    function calculateUnclaimedFreeFloatingETHShare(bytes memory _blsPubKey, address _user) public view returns (uint256) {
++    function calculateUnclaimedFreeFloatingETHShare(blsKey _blsPubKey, address _user) public view returns (uint256) {
+         // Check the user has staked sETH for the KNOT
+         uint256 stakedBal = sETHStakedBalanceForKnot[_blsPubKey][_user];
+         if (stakedBal < 1 gwei) return 0;
+@@ -389,7 +390,7 @@
+     /// @notice Calculate the total unclaimed ETH across an array of BLS public keys for a free floating staker
+     function batchPreviewUnclaimedETHAsFreeFloatingStaker(
+         address _staker,
+-        bytes[] calldata _blsPubKeys
++        blsKey[] calldata _blsPubKeys
+     ) external view returns (uint256) {
+         uint256 accumulated;
+         uint256 numOfKeys = _blsPubKeys.length;
+@@ -405,7 +406,7 @@
+     /// @param _staker The address of a user that has staked sETH against the BLS public key
+     function previewUnclaimedETHAsFreeFloatingStaker(
+         address _staker,
+-        bytes calldata _blsPubKey
++        blsKey _blsPubKey
+     ) public view returns (uint256) {
+         uint256 currentAccumulatedETHPerFreeFloatingShare = accumulatedETHPerFreeFloatingShare;
+         uint256 updatedAccumulatedETHPerFreeFloatingShare =
+@@ -420,7 +421,7 @@
+     /// @notice Calculate the total unclaimed ETH across an array of BLS public keys for a collateralized SLOT staker
+     function batchPreviewUnclaimedETHAsCollateralizedSlotOwner(
+         address _staker,
+-        bytes[] calldata _blsPubKeys
++        blsKey[] calldata _blsPubKeys
+     ) external view returns (uint256) {
+         uint256 accumulated;
+         uint256 numOfKeys = _blsPubKeys.length;
+@@ -436,7 +437,7 @@
+     /// @param _blsPubKey BLS public key of the KNOT that is registered with the syndicate
+     function previewUnclaimedETHAsCollateralizedSlotOwner(
+         address _staker,
+-        bytes calldata _blsPubKey
++        blsKey _blsPubKey
+     ) public view returns (uint256) {
+         // Per collateralized SLOT per KNOT before distributing to individual collateralized owners
+         uint256 accumulatedSoFar = accumulatedETHPerCollateralizedSlotPerKnot
+@@ -448,18 +449,18 @@
+         uint256 currentAccrued = accruedEarningPerCollateralizedSlotOwnerOfKnot[_blsPubKey][_staker];
+ 
+         // Fetch information about the knot including total slashed amount
+-        uint256 currentSlashedAmount = getSlotRegistry().currentSlashedAmountOfSLOTForKnot(_blsPubKey);
+-        uint256 numberOfCollateralisedSlotOwnersForKnot = getSlotRegistry().numberOfCollateralisedSlotOwnersForKnot(_blsPubKey);
+-        (address stakeHouse,,,,,) = getStakeHouseUniverse().stakeHouseKnotInfo(_blsPubKey);
++        uint256 currentSlashedAmount = getSlotRegistry().currentSlashedAmountOfSLOTForKnot(blsKey.unwrap(_blsPubKey));
++        uint256 numberOfCollateralisedSlotOwnersForKnot = getSlotRegistry().numberOfCollateralisedSlotOwnersForKnot(blsKey.unwrap(_blsPubKey));
++        (address stakeHouse,,,,,) = getStakeHouseUniverse().stakeHouseKnotInfo(blsKey.unwrap(_blsPubKey));
+ 
+         // Find the collateralized SLOT owner and work out how much they're owed
+         for (uint256 i; i < numberOfCollateralisedSlotOwnersForKnot; ++i) {
+-            address collateralizedOwnerAtIndex = getSlotRegistry().getCollateralisedOwnerAtIndex(_blsPubKey, i);
++            address collateralizedOwnerAtIndex = getSlotRegistry().getCollateralisedOwnerAtIndex(blsKey.unwrap(_blsPubKey), i);
+             if (collateralizedOwnerAtIndex == _staker) {
+                 uint256 balance = getSlotRegistry().totalUserCollateralisedSLOTBalanceForKnot(
+                     stakeHouse,
+                     collateralizedOwnerAtIndex,
+-                    _blsPubKey
++                    blsKey.unwrap(_blsPubKey)
+                 );
+ 
+                 if (currentSlashedAmount < 4 ether) {
+@@ -507,7 +508,7 @@
+         address _contractOwner,
+         uint256 _priorityStakingEndBlock,
+         address[] memory _priorityStakers,
+-        bytes[] memory _blsPubKeysForSyndicateKnots
++        blsKey[] memory _blsPubKeysForSyndicateKnots
+     ) internal {
+         // Transfer ownership from the deployer to the address specified as the owner
+         _transferOwnership(_contractOwner);
+@@ -525,34 +526,34 @@
+     }
+ 
+     /// Given an amount of ETH allocated to the collateralized SLOT owners of a KNOT, distribute this amongs the current set of collateralized owners (a dynamic set of addresses and balances)
+-    function _updateCollateralizedSlotOwnersLiabilitySnapshot(bytes memory _blsPubKey) internal {
++    function _updateCollateralizedSlotOwnersLiabilitySnapshot(blsKey _blsPubKey) internal {
+         // Establish how much new ETH is for the new KNOT
+         uint256 unprocessedETHForCurrentKnot =
+                     accumulatedETHPerCollateralizedSlotPerKnot - totalETHProcessedPerCollateralizedKnot[_blsPubKey];
+ 
+         // Get information about the knot i.e. associated house and whether its active
+-        (address stakeHouse,,,,,bool isActive) = getStakeHouseUniverse().stakeHouseKnotInfo(_blsPubKey);
++        (address stakeHouse,,,,,bool isActive) = getStakeHouseUniverse().stakeHouseKnotInfo(blsKey.unwrap(_blsPubKey));
+ 
+         // Assuming that there is unprocessed ETH and the knot is still part of the syndicate
+         if (unprocessedETHForCurrentKnot > 0 && !isNoLongerPartOfSyndicate[_blsPubKey]) {
+-            uint256 currentSlashedAmount = getSlotRegistry().currentSlashedAmountOfSLOTForKnot(_blsPubKey);
++            uint256 currentSlashedAmount = getSlotRegistry().currentSlashedAmountOfSLOTForKnot(blsKey.unwrap(_blsPubKey));
+ 
+             // Don't allocate ETH when the current slashed amount is four. Syndicate will wait until ETH is topped up to claim revenue
+             if (currentSlashedAmount < 4 ether) {
+                 // This copes with increasing numbers of collateralized slot owners and also copes with SLOT that has been slashed but not topped up
+-                uint256 numberOfCollateralisedSlotOwnersForKnot = getSlotRegistry().numberOfCollateralisedSlotOwnersForKnot(_blsPubKey);
++                uint256 numberOfCollateralisedSlotOwnersForKnot = getSlotRegistry().numberOfCollateralisedSlotOwnersForKnot(blsKey.unwrap(_blsPubKey));
+ 
+                 if (numberOfCollateralisedSlotOwnersForKnot == 1) {
+                     // For only 1 collateralized SLOT owner, they get the full amount of unprocessed ETH for the knot
+-                    address collateralizedOwnerAtIndex = getSlotRegistry().getCollateralisedOwnerAtIndex(_blsPubKey, 0);
++                    address collateralizedOwnerAtIndex = getSlotRegistry().getCollateralisedOwnerAtIndex(blsKey.unwrap(_blsPubKey), 0);
+                     accruedEarningPerCollateralizedSlotOwnerOfKnot[_blsPubKey][collateralizedOwnerAtIndex] += unprocessedETHForCurrentKnot;
+                 } else {
+                     for (uint256 i; i < numberOfCollateralisedSlotOwnersForKnot; ++i) {
+-                        address collateralizedOwnerAtIndex = getSlotRegistry().getCollateralisedOwnerAtIndex(_blsPubKey, i);
++                        address collateralizedOwnerAtIndex = getSlotRegistry().getCollateralisedOwnerAtIndex(blsKey.unwrap(_blsPubKey), i);
+                         uint256 balance = getSlotRegistry().totalUserCollateralisedSLOTBalanceForKnot(
+                             stakeHouse,
+                             collateralizedOwnerAtIndex,
+-                            _blsPubKey
++                            blsKey.unwrap(_blsPubKey)
+                         );
+ 
+                         accruedEarningPerCollateralizedSlotOwnerOfKnot[_blsPubKey][collateralizedOwnerAtIndex] +=
+@@ -589,14 +590,13 @@
+     }
+ 
+     /// @dev Business logic for adding a new set of knots to the syndicate for collecting revenue
+-    function _registerKnotsToSyndicate(bytes[] memory _blsPubKeysForSyndicateKnots) internal {
++    function _registerKnotsToSyndicate(blsKey[] memory _blsPubKeysForSyndicateKnots) internal {
+         uint256 knotsToRegister = _blsPubKeysForSyndicateKnots.length;
+         if (knotsToRegister == 0) revert EmptyArray();
+         numberOfRegisteredKnots += knotsToRegister;
+ 
+         for (uint256 i; i < knotsToRegister; ++i) {
+-            bytes memory blsPubKey = _blsPubKeysForSyndicateKnots[i];
+-
++            blsKey blsPubKey = _blsPubKeysForSyndicateKnots[i];
+             if (isKnotRegistered[blsPubKey]) revert KnotIsAlreadyRegistered();
+ 
+             // incomming knot collateralized SLOT holders do not get historical earnings
+@@ -604,12 +604,12 @@
+ 
+             // Health check - if knot is inactive or slashed, should it really be part of the syndicate?
+             // KNOTs closer to 32 effective at all times is the target
+-            (,,,,,bool isActive) = getStakeHouseUniverse().stakeHouseKnotInfo(blsPubKey);
++            (,,,,,bool isActive) = getStakeHouseUniverse().stakeHouseKnotInfo(blsKey.unwrap(blsPubKey));
+             if (!isActive) revert InactiveKnot();
+ 
+-            uint256 numberOfCollateralisedSlotOwnersForKnot = getSlotRegistry().numberOfCollateralisedSlotOwnersForKnot(blsPubKey);
++            uint256 numberOfCollateralisedSlotOwnersForKnot = getSlotRegistry().numberOfCollateralisedSlotOwnersForKnot(blsKey.unwrap(blsPubKey));
+             if (numberOfCollateralisedSlotOwnersForKnot < 1) revert InvalidNumberOfCollateralizedOwners();
+-            if (getSlotRegistry().currentSlashedAmountOfSLOTForKnot(blsPubKey) != 0) revert InvalidNumberOfCollateralizedOwners();
++            if (getSlotRegistry().currentSlashedAmountOfSLOTForKnot(blsKey.unwrap(blsPubKey)) != 0) revert InvalidNumberOfCollateralizedOwners();
+ 
+             isKnotRegistered[blsPubKey] = true;
+             emit KNOTRegistered(blsPubKey);
+@@ -632,10 +632,10 @@
+     }
+ 
+     /// @dev Business logic for de-registering a set of knots from the syndicate and doing the required snapshots to ensure historical earnings are preserved
+-    function _deRegisterKnots(bytes[] calldata _blsPublicKeys) internal {
++    function _deRegisterKnots(blsKey[] memory _blsPublicKeys) internal {
+         uint256 numOfKeys = _blsPublicKeys.length;
+         for (uint256 i; i < numOfKeys; ++i) {
+-            bytes memory blsPublicKey = _blsPublicKeys[i];
++            blsKey blsPublicKey = _blsPublicKeys[i];
+ 
+             // Do one final snapshot of ETH owed to the collateralized SLOT owners so they can claim later
+             _updateCollateralizedSlotOwnersLiabilitySnapshot(blsPublicKey);
+@@ -646,7 +646,7 @@
+     }
+ 
+     /// @dev Business logic for de-registering a specific knots assuming all accrued ETH has been processed
+-    function _deRegisterKnot(bytes memory _blsPublicKey) internal {
++    function _deRegisterKnot(blsKey _blsPublicKey) internal {
+         if (isKnotRegistered[_blsPublicKey] == false) revert KnotIsNotRegisteredWithSyndicate();
+         if (isNoLongerPartOfSyndicate[_blsPublicKey] == true) revert KnotHasAlreadyBeenDeRegistered();
+ 
+@@ -667,7 +667,7 @@
+ 
+     /// @dev Work out the accumulated ETH per free floating share value that must be used for distributing ETH
+     function _getCorrectAccumulatedETHPerFreeFloatingShareForBLSPublicKey(
+-        bytes memory _blsPublicKey
++        blsKey _blsPublicKey
+     ) internal view returns (uint256) {
+         return
+         lastAccumulatedETHPerFreeFloatingShare[_blsPublicKey] > 0 ?
+@@ -676,7 +676,7 @@
+     }
+ 
+     /// @dev Business logic for allowing a free floating SLOT holder to claim their share of ETH
+-    function _claimAsStaker(address _recipient, bytes[] calldata _blsPubKeys) internal {
++    function _claimAsStaker(address _recipient, blsKey[] memory _blsPubKeys) internal {
+         uint256 numOfKeys = _blsPubKeys.length;
+         if (numOfKeys == 0) revert EmptyArray();
+         if (_recipient == address(0)) revert ZeroAddress();
+@@ -687,7 +687,7 @@
+ 
+         uint256 totalToTransfer;
+         for (uint256 i; i < numOfKeys; ++i) {
+-            bytes memory _blsPubKey = _blsPubKeys[i];
++            blsKey _blsPubKey = _blsPubKeys[i];
+             if (!isKnotRegistered[_blsPubKey]) revert KnotIsNotRegisteredWithSyndicate();
+ 
+             uint256 unclaimedUserShare = calculateUnclaimedFreeFloatingETHShare(_blsPubKey, msg.sender);
