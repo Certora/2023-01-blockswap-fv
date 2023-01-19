@@ -33,7 +33,7 @@ We will introduce several bugs in the syndicate smart contract, some of which ar
 
 | Contract | SLOC | Purpose | Libraries used |  
 | ----------- | ----------- | ----------- | ----------- |
-|[contracts/syndicate/Syndicate.sol](https://github.com/code-423n4/2022-11-stakehouse/blob/main/contracts/syndicate/Syndicate.sol) [💰](#nowhere "Payable Functions") [📤](#nowhere "Initiates ETH Value Transfer")|[402](#nowhere "(nSLOC:374, SLOC:402, Lines:681)")|-|
+|[contracts/syndicate/Syndicate.sol](https://github.com/Certora/2023-01-blockswap-fv/blob/certora/contracts/syndicate/Syndicate.sol) [💰](#nowhere "Payable Functions") [📤](#nowhere "Initiates ETH Value Transfer")|[402](#nowhere "(nSLOC:374, SLOC:402, Lines:681)")|-|
 
 # Additional Context
 
