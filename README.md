@@ -111,6 +111,7 @@ look at the following documentation:
 ---
 # Formal Verification Contest Incentive Model
 ## Key Takeaways
+* The objective is to prove strong properties and strength will be checked by testing the proven properties against 10 bugs, 3 of which are public from the start. Properties that catch real bugs are considered strong already.
 * The total reward is split into three categories: participation, real bugs, and injected bugs
 * Participation rewards are given to all security contributors that have a spec which catches publicly available injected bugs.
 * Discrete injected bugs’ and real bugs’ awards are calculated similarly, using the [same equations as in normal Code4rena contests](https://docs.code4rena.com/awarding/incentive-model-and-awards). 
