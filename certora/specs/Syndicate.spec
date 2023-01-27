@@ -22,7 +22,7 @@ methods {
     // ERC20
     name()                                returns (string)  => DISPATCHER(true)
     symbol()                              returns (string)  => DISPATCHER(true)
-    decimals()                            returns (string)  => DISPATCHER(true)
+    decimals()                            returns (string) envfree => DISPATCHER(true)
     totalSupply()                         returns (uint256) => DISPATCHER(true)
     balanceOf(address)                    returns (uint256) => DISPATCHER(true)
     allowance(address,address)            returns (uint)    => DISPATCHER(true)
@@ -79,18 +79,6 @@ definition notHarnessCall(method f) returns bool =
 /// Corrollary that can be used as requirement after sETH solvency is proven.
 function sETHSolvencyCorrollary(address user1, address user2, bytes32 knot) returns bool {
     return sETHStakedBalanceForKnot(knot,user1) + sETHStakedBalanceForKnot(knot,user2) <= sETHTotalStakeForKnot(knot);
-}
-
-rule getGet() {
-    bytes32 in1; address in2;
-    uint256 out1 = accruedEarningPerCollateralizedSlotOwnerOfKnot(in1,in2);
-    bytes32 in3;
-    uint256 out2 = totalETHProcessedPerCollateralizedKnot(in3);
-    bytes32 in4; address in5;
-    uint256 out3 = sETHStakedBalanceForKnot(in4,in5);
-    bytes32 in6;
-    uint256 out4 = sETHTotalStakeForKnot(in6);
-    assert out1 + out2 + out3 + out4 < 100;
 }
 
 /**
