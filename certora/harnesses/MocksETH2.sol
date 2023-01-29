@@ -87,7 +87,7 @@ contract  MocksETH is ERC20PermitUpgradeable {
     }
 
     function transfer(address recipient, uint256 amount) public virtual override returns (bool val) {
-        if (balanceOf(recipient) >= amount) {
+        if (balanceOf(msg.sender) >= amount) {
             return super.transfer(recipient, amount);
         }         
     }
