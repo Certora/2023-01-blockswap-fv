@@ -28,7 +28,7 @@ contract MockSlotSettlementRegistry  {
     /// @notice Total number of collateralised SLOT owners for a given KNOT
     /// @param _blsPublicKey BLS public key of the KNOT
     function numberOfCollateralisedSlotOwnersForKnot(blsKey  _blsPublicKey) external view returns (uint256) {
-        return _numberOfCollateralisedSlotOwnersForKnot[_blsPublicKey] == 0 ? 1 : _numberOfCollateralisedSlotOwnersForKnot[_blsPublicKey];
+        return _numberOfCollateralisedSlotOwnersForKnot[_blsPublicKey];
     }
 
     function totalUserCollateralisedSLOTBalanceForKnot( address stakeHouse, address owner, blsKey blsPubKey ) public returns (uint256) {
