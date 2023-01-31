@@ -92,7 +92,7 @@ contract SyndicateHarness is Syndicate {
     }
 
     function claimAsStaker(address input1, blsKey input2, blsKey input3) public {
-        blsKey[] memory next_input2 = new blsKey[](3);
+        blsKey[] memory next_input2 = new blsKey[](2);
         next_input2[0] = input2;
         next_input2[1] = input3;
         claimAsStaker(input1, next_input2);
