@@ -45,8 +45,11 @@ jobs:
           chmod +x solc-static-linux
           sudo mv solc-static-linux /usr/local/bin/solc
       
-      - name: Install solc-select
-        run: pip install solc-select
+      - name: Install solc-select and solc-0.8.13
+        run: |
+          pip install solc-select
+          solc-select install 0.8.13
+          solc-select use 0.8.13
       
       - name: Install contract dependencies
         run: yarn
