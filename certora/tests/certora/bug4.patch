@@ -2,14 +2,6 @@ diff --git a/certora/munged/syndicate/Syndicate.sol b/certora/munged/syndicate/S
 index 07f69c8..1438164 100644
 --- a/certora/munged/syndicate/Syndicate.sol
 +++ b/certora/munged/syndicate/Syndicate.sol
-@@ -449,7 +449,6 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
-         uint256 currentAccrued = accruedEarningPerCollateralizedSlotOwnerOfKnot[_blsPubKey][_staker];
- 
-         // Fetch information about the knot including total slashed amount
--        uint256 currentSlashedAmount = getSlotRegistry().currentSlashedAmountOfSLOTForKnot(blsKey.unwrap(_blsPubKey));
-         uint256 numberOfCollateralisedSlotOwnersForKnot = getSlotRegistry().numberOfCollateralisedSlotOwnersForKnot(blsKey.unwrap(_blsPubKey));
-         (address stakeHouse,,,,,) = getStakeHouseUniverse().stakeHouseKnotInfo(blsKey.unwrap(_blsPubKey));
- 
 @@ -463,11 +462,9 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
                      blsKey.unwrap(_blsPubKey)
                  );
