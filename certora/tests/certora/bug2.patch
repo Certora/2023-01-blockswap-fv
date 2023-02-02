@@ -1,0 +1,16 @@
+diff --git a/certora/munged/syndicate/Syndicate.sol b/certora/munged/syndicate/Syndicate.sol
+index 42d6159..c50cdc5 100644
+--- a/certora/munged/syndicate/Syndicate.sol
++++ b/certora/munged/syndicate/Syndicate.sol
+@@ -266,10 +266,7 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
+             (address stakeHouse,,,,,) = getStakeHouseUniverse().stakeHouseKnotInfo(blsKey.unwrap(_blsPubKey));
+             IERC20 sETH = IERC20(getSlotRegistry().stakeHouseShareTokens(stakeHouse));
+ 
+-            // Only decrease totalFreeFloatingShares in the event that the knot is still active in the syndicate
+-            if (!isNoLongerPartOfSyndicate[_blsPubKey]) {
+-                totalFreeFloatingShares -= _sETHAmount;
+-            }
++            totalFreeFloatingShares -= _sETHAmount;
+ 
+             sETHTotalStakeForKnot[_blsPubKey] -= _sETHAmount;
+             sETHStakedBalanceForKnot[_blsPubKey][msg.sender] -= _sETHAmount;

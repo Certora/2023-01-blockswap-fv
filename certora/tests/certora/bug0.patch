@@ -1,0 +1,22 @@
+diff --git a/certora/munged/syndicate/Syndicate.sol b/certora/munged/syndicate/Syndicate.sol
+index 07f69c8..4bdee39 100644
+--- a/certora/munged/syndicate/Syndicate.sol
++++ b/certora/munged/syndicate/Syndicate.sol
+@@ -690,7 +690,7 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
+             blsKey _blsPubKey = _blsPubKeys[i];
+             if (!isKnotRegistered[_blsPubKey]) revert KnotIsNotRegisteredWithSyndicate();
+ 
+-            uint256 unclaimedUserShare = calculateUnclaimedFreeFloatingETHShare(_blsPubKey, msg.sender);
++            uint256 unclaimedUserShare = calculateUnclaimedFreeFloatingETHShare(_blsPubKey, _recipient);
+ 
+             // this means that user can call the funtion even if there is nothing to claim but the
+             // worst that will happen is that they will just waste gas. this is needed for unstaking
+@@ -718,6 +718,6 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
+             }
+         }
+ 
+-        _transferETH(_recipient, totalToTransfer);
++        _transferETH(msg.sender, totalToTransfer);
+     }
+ }
+\ No newline at end of file

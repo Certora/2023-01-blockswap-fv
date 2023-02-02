@@ -1,0 +1,13 @@
+diff --git a/certora/munged/syndicate/Syndicate.sol b/certora/munged/syndicate/Syndicate.sol
+index 42d6159..8b55cb4 100644
+--- a/certora/munged/syndicate/Syndicate.sol
++++ b/certora/munged/syndicate/Syndicate.sol
+@@ -517,7 +517,7 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
+         _registerKnotsToSyndicate(_blsPubKeysForSyndicateKnots);
+ 
+         // Optionally process priority staking if the required params and array is configured
+-        if (_priorityStakingEndBlock > block.number) {
++        if (_priorityStakingEndBlock <= block.number) {
+             priorityStakingEndBlock = _priorityStakingEndBlock;
+             _addPriorityStakers(_priorityStakers);
+         }

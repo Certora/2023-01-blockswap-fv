@@ -1,0 +1,13 @@
+diff --git a/certora/munged/syndicate/Syndicate.sol b/certora/munged/syndicate/Syndicate.sol
+index 07f69c8..0d611a3 100644
+--- a/certora/munged/syndicate/Syndicate.sol
++++ b/certora/munged/syndicate/Syndicate.sol
+@@ -395,7 +395,7 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
+         uint256 accumulated;
+         uint256 numOfKeys = _blsPubKeys.length;
+         for (uint256 i; i < numOfKeys; ++i) {
+-            accumulated += previewUnclaimedETHAsFreeFloatingStaker(_staker, _blsPubKeys[i]);
++            accumulated = previewUnclaimedETHAsFreeFloatingStaker(_staker, _blsPubKeys[i]);
+         }
+ 
+         return accumulated;

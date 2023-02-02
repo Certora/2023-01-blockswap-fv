@@ -1,0 +1,12 @@
+diff --git a/certora/munged/syndicate/Syndicate.sol b/certora/munged/syndicate/Syndicate.sol
+index 42d6159..5ed2867 100644
+--- a/certora/munged/syndicate/Syndicate.sol
++++ b/certora/munged/syndicate/Syndicate.sol
+@@ -597,7 +597,6 @@ contract Syndicate is ISyndicateInit, Initializable, Ownable, ReentrancyGuard, S
+ 
+         for (uint256 i; i < knotsToRegister; ++i) {
+             blsKey blsPubKey = _blsPubKeysForSyndicateKnots[i];
+-            if (isKnotRegistered[blsPubKey]) revert KnotIsAlreadyRegistered();
+ 
+             // incomming knot collateralized SLOT holders do not get historical earnings
+             totalETHProcessedPerCollateralizedKnot[blsPubKey] = accumulatedETHPerCollateralizedSlotPerKnot;
