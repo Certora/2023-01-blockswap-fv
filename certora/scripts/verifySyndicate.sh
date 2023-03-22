@@ -14,7 +14,7 @@ certoraRun  certora/harnesses/SyndicateHarness.sol \
     certora/harnesses/MockStakeHouseRegistry.sol \
     certora/harnesses/MockSlotSettlementRegistry.sol \
     certora/harnesses/MocksETH.sol \
-    --verify SyndicateHarness:certora/specs/Syndicate.spec \
+    --verify SyndicateHarness:certora/specs/$1.spec \
     --cloud master \
     --optimistic_loop \
     --optimize 1 \

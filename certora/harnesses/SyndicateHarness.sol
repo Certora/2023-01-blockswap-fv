@@ -10,6 +10,17 @@ contract SyndicateHarness is Syndicate {
     address registry;
     address universe;
 
+    // harnessed variables
+    function getETHBalance(address user) public view returns (uint) {
+        return user.balance;
+    }
+
+    function getActivenessOfKnot(bytes32 _blsPubKey) public returns (bool) {
+        (,,,,,bool isActive) = getStakeHouseUniverse().stakeHouseKnotInfo(_blsPubKey);
+        return isActive;
+    }
+
+    // harnessed functions
     function registerKnotsToSyndicate(blsKey input) public {
         blsKey[] memory next_input = new blsKey[](1);
         next_input[0] = input;
