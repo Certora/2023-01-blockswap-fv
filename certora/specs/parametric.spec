@@ -12,12 +12,12 @@ rule isRegisteredVsNumberofRegistered(method f, env e, bytes32 knot)filtered {
     f -> notHarnessCall(f)}{
 
     bool isRegisteredBefore = isKnotRegistered(knot);
-    uint RegisteredKnotsBefore = numberOfRegisteredKnots(e);
+    uint RegisteredKnotsBefore = numberOfRegisteredKnots();
 
     calldataarg args;
     f(e,args);
 
-    assert isRegisteredBefore != isKnotRegistered(knot) => RegisteredKnotsBefore != numberOfRegisteredKnots(e);
+    assert isRegisteredBefore != isKnotRegistered(knot) => RegisteredKnotsBefore != numberOfRegisteredKnots();
 }
 /**
  * lastSeenETHPerFreeFloating is monotonic
@@ -27,12 +27,12 @@ rule lastSeenETH(method f) filtered {
     f -> notHarnessCall(f)}{
     env e;
 
-    uint lastSeebEthBefore = lastSeenETHPerFreeFloating(e);
+    uint lastSeenEthBefore = lastSeenETHPerFreeFloating();
 
     calldataarg args;
     f(e,args);
 
-    assert lastSeenETHPerFreeFloating(e) >= lastSeebEthBefore;
+    assert lastSeenETHPerFreeFloating() >= lastSeenEthBefore;
 }
 
 /**
@@ -70,8 +70,8 @@ rule imprecisionIsBounded(method f) filtered {
     address staker;
     require isKnotRegistered(blsPubKey);
     require isNoLongerPartOfSyndicate(blsPubKey);
-    requireInvariant lastAccumulatedETHPerFreeFloatingShare_is_not_0_when_deregistered(blsPubKey);
-    updateAccruedETHPerShares(e);
+    require isNoLongerPartOfSyndicate(blsPubKey) => lastAccumulatedETHPerFreeFloatingShare(blsPubKey) != 0;
+    updateAccruedETHPerShares();
     uint256 a = sETHUserClaimForKnot(blsPubKey, staker);
     uint256 b = (lastAccumulatedETHPerFreeFloatingShare(blsPubKey) * sETHStakedBalanceForKnot(blsPubKey, staker)) / PRECISION();
     require ((a-b <= 1) && (b-a <= 1));
