@@ -384,8 +384,8 @@ rule registerKnotsToSyndicateUpdatesStates(method f) filtered {
     bool registered2 = isKnotRegistered(blsPubKey2);
     bool noLongerPartOfSyndicateAfter1 = isNoLongerPartOfSyndicate(blsPubKey1);
     bool noLongerPartOfSyndicateAfter2 = isNoLongerPartOfSyndicate(blsPubKey2);
-    bool active1 = getActivenessOfKnot(e, blsPubKey1);
-    bool active2 = getActivenessOfKnot(e, blsPubKey2);
+    bool active1 = getActivenessOfKnot(blsPubKey1);
+    bool active2 = getActivenessOfKnot(blsPubKey2);
 
     assert registered1 == true && registered2 == true 
     && noLongerPartOfSyndicateAfter1 == false && noLongerPartOfSyndicateAfter2 == false
@@ -418,7 +418,7 @@ rule inActiveKnotCannotRegister(method f) filtered {
 } {
     env e;
     bytes32 blsPubKey;
-    require getActivenessOfKnot(e, blsPubKey) == false;
+    require getActivenessOfKnot(blsPubKey) == false;
     registerKnotsToSyndicate@withrevert(e, blsPubKey);
     assert lastReverted, "registerKnotsToSyndicate must revert if knot is inactive";
 }
@@ -507,7 +507,7 @@ rule inactiveKnotCanNotBeRegistered()
 {
     env e;
     bytes32 knot;
-    require getActivenessOfKnot(e, knot);
+    require getActivenessOfKnot(knot);
 
     registerKnotsToSyndicate@withrevert(e,knot);
     bool reverted = lastReverted;

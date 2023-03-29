@@ -1,4 +1,4 @@
-import "./live.spec"
+import "./invariant.spec"
 
 // ÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷ //
 // ÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷      Injected Bug Catching Rules      ÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷ //
@@ -57,7 +57,7 @@ rule calculateUnclaimedFreeFloatingETHShareReturnsZeroIfStakedBalanceLessThanMin
     require e.msg.value == 0;
 
     require sETHStakedBalanceForKnot(blsPubKey, user) < minAmount;
-    uint256 unclaimedETH = calculateUnclaimedFreeFloatingETHShare@withrevert(e, blsPubKey, user);
+    uint256 unclaimedETH = calculateUnclaimedFreeFloatingETHShare@withrevert(blsPubKey, user);
     assert unclaimedETH == 0;
 }
 
@@ -293,11 +293,11 @@ rule correctAmountOfUnprocessedETHForAllCollateralizedSlot() {
 // author: 8ahoz
 rule NewKnotDecreasesETHForSLOT(env e, bytes32 knot) 
 {
-    uint256 amountBefore = getUnprocessedETHForAllCollateralizedSlot(e);
+    uint256 amountBefore = getUnprocessedETHForAllCollateralizedSlot();
 
     registerKnotsToSyndicate(e, knot);
 
-    uint256 amountAfter = getUnprocessedETHForAllCollateralizedSlot(e);
+    uint256 amountAfter = getUnprocessedETHForAllCollateralizedSlot();
     
     assert amountBefore > 0 => amountAfter < amountBefore;
 }
@@ -370,13 +370,13 @@ rule correctAmountTransferedAfterClaim(address recipient, bytes32 key, bytes32 k
     //require keys to be different in order to calculate unclaimedUserShare for both keys correctly
     require key != key2;
     //cache balance and unclaimedUserShare before claiming
-    uint256 recipientBalanceBefore = balance(recipient);
+    uint256 recipientBalanceBefore = getETHBalance(recipient);
     uint256 unclaimedUserShareKey1 = calculateUnclaimedFreeFloatingETHShare(key, e.msg.sender);
     uint256 unclaimedUserShareKey2 = calculateUnclaimedFreeFloatingETHShare(key2, e.msg.sender);
 
     claimAsStaker(e, recipient, key, key2);
     //cache balance and unclaimedUserShare after claiming
-    uint256 recipientBalanceAfter = balance(recipient);
+    uint256 recipientBalanceAfter = getETHBalance(recipient);
 
     assert recipientBalanceAfter == recipientBalanceBefore + unclaimedUserShareKey1 + unclaimedUserShareKey2, "recipient must be transferred the correct amount of unclaimedUserShare after claiming";
 }

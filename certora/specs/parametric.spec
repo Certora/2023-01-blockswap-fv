@@ -161,12 +161,12 @@ rule inactiveKnotCannotBecomeActive(method f) filtered {
     calldataarg args;
     bytes32 blsPubKey;
 
-    bool isActiveBefore = getActivenessOfKnot(e, blsPubKey);
+    bool isActiveBefore = getActivenessOfKnot(blsPubKey);
     require isActiveBefore == false;
 
     f(e, args);
 
-    bool isActiveAfter = getActivenessOfKnot(e, blsPubKey);
+    bool isActiveAfter = getActivenessOfKnot(blsPubKey);
 
     assert isActiveAfter == false;          
 }

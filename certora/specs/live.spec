@@ -1,4 +1,4 @@
-import "./invariant.spec"
+import "./injected.spec"
 
 // ÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷ //
 // ÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷      Live Bug Catching Rules      ÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷÷ //
@@ -25,7 +25,7 @@ rule lastAccumulatedETHPerFreeFloatingShareMustAccountForAccruedETH(method f) fi
 
     require isNoLongerPartOfSyndicate(blsPubKey);
 
-    updateAccruedETHPerShares(e);
+    updateAccruedETHPerShares();
 
     assert lastAccumulatedETHPerFreeFloatingShare(blsPubKey) == accumulatedETHPerFreeFloatingShare(), "Knot deregistered, but lastAccumulatedETHPerFreeFloatingShare has a wrong value";
 
@@ -41,7 +41,7 @@ rule cannotStakeIfKnotIsInactive(method f) filtered {
     address onBehalfOf;
     env e;
 
-    require getActivenessOfKnot(e,blsPubKey) == false;
+    require getActivenessOfKnot(blsPubKey) == false;
 
     stake@withrevert(e, blsPubKey, sETHAmount, onBehalfOf);
 
@@ -59,7 +59,7 @@ rule inactiveKnotShouldNoLongerBePartOfSyndicate(method f) filtered {
     uint256 sETHAmount;
     address onBehalfOf;
 
-    bool getActivenessOfKnotBefore = getActivenessOfKnot(e, blsPubKey);
+    bool getActivenessOfKnotBefore = getActivenessOfKnot(blsPubKey);
     bool noLongerPartOfSyndicateBefore = isNoLongerPartOfSyndicate(blsPubKey);
     bool registeredBefore = isKnotRegistered(blsPubKey);
     require getActivenessOfKnotBefore == false;
@@ -68,7 +68,7 @@ rule inactiveKnotShouldNoLongerBePartOfSyndicate(method f) filtered {
 
     stake(e, blsPubKey, sETHAmount, onBehalfOf);
 
-    bool getActivenessOfKnotAfter = getActivenessOfKnot(e, blsPubKey);
+    bool getActivenessOfKnotAfter = getActivenessOfKnot(blsPubKey);
     bool noLongerPartOfSyndicateAfter = isNoLongerPartOfSyndicate(blsPubKey);
 
     assert noLongerPartOfSyndicateAfter == true;
@@ -104,7 +104,7 @@ rule deregisterInactiveKnotShouldSucceed()
     require e.msg.sender == owner();
     require e.msg.value == 0;
     // safe assumptions 
-    require StakeHouseUniverse.memberKnotToStakeHouse(knot) != 0;
+    require memberKnotToStakeHouse(e, knot) != 0;
     require isKnotRegistered(knot);
     require !isNoLongerPartOfSyndicate(knot);
     require accumulatedETHPerCollateralizedSlotPerKnot() == 0;
@@ -113,11 +113,11 @@ rule deregisterInactiveKnotShouldSucceed()
     require sETHTotalStakeForKnot(knot) == 0;
     require lastSeenETHPerCollateralizedSlotPerKnot() == 0;
     require totalClaimed() == 0;
-    require getEthBalance(currentContract) == 0;
+    require getETHBalance(currentContract) == 0;
     require numberOfRegisteredKnots() == 1; 
 
     deRegisterKnots@withrevert(e,knot);
     bool reverted = lastReverted;
 
-    assert !StakeHouseRegistry.active(knot) => !reverted;
+    assert getActivenessOfKnot(knot) => !reverted;
 }

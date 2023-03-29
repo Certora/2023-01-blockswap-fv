@@ -11,7 +11,7 @@ contract SyndicateHarness is Syndicate {
     address universe;
 
     // harnessed variables
-    function getETHBalance(address user) public view returns (uint) {
+    function getETHBalance(address user) public view returns (uint256) {
         return user.balance;
     }
 
@@ -21,6 +21,11 @@ contract SyndicateHarness is Syndicate {
     }
 
     // harnessed functions
+
+    function getCorrectAccumulatedETHPerFreeFloatingShareForBLSPublicKey(blsKey _blsPubKey) public view returns (uint256) {
+        return _getCorrectAccumulatedETHPerFreeFloatingShareForBLSPublicKey(_blsPubKey);
+    }
+
     function registerKnotsToSyndicate(blsKey input) public {
         blsKey[] memory next_input = new blsKey[](1);
         next_input[0] = input;

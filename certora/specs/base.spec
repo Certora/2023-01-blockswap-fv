@@ -10,6 +10,7 @@ methods {
     totalETHReceived() returns (uint256) envfree
     calculateETHForFreeFloatingOrCollateralizedHolders() returns (uint256) envfree;
     getUnprocessedETHForAllCollateralizedSlot() returns (uint256) envfree;
+    getCorrectAccumulatedETHPerFreeFloatingShareForBLSPublicKey(bytes32) returns (uint256) envfree;
     updateAccruedETHPerShares() envfree;
     updatePriorityStakingBlock(uint256);
     previewUnclaimedETHAsFreeFloatingStaker(address, bytes32) returns (uint256) envfree;
@@ -60,8 +61,8 @@ methods {
     totalETHProcessedPerCollateralizedKnot(bytes32) returns (uint256) envfree
     sETHStakedBalanceForKnot(bytes32,address) returns (uint256) envfree
     sETHTotalStakeForKnot(bytes32) returns (uint256) envfree
-    getETHBalance(address) returns (uint) envfree
-    getActivenessOfKnot(bytes32) returns (bool)
+    getETHBalance(address) returns (uint256) envfree
+    getActivenessOfKnot(bytes32) returns (bool) envfree
     // harnessed functions
     deRegisterKnots(bytes32) 
     deRegisterKnots(bytes32,bytes32)
@@ -109,6 +110,17 @@ definition notHarnessCall(method f) returns bool =
 function sETHSolvencyCorrollary(address user1, address user2, bytes32 knot) returns bool {
     return sETHStakedBalanceForKnot(knot,user1) + sETHStakedBalanceForKnot(knot,user2) <= sETHTotalStakeForKnot(knot);
 }
+
+//////////////////////// Definitions
+
+definition knotNotRegistered(bytes32 BLSPubKey) returns bool = 
+    !isKnotRegistered(BLSPubKey) && !isNoLongerPartOfSyndicate(BLSPubKey);
+
+definition knotRegistered(bytes32 BLSPubKey) returns bool = 
+    isKnotRegistered(BLSPubKey) && !isNoLongerPartOfSyndicate(BLSPubKey);
+
+definition knotDeRegistered(bytes32 BLSPubKey) returns bool = 
+    isKnotRegistered(BLSPubKey) && isNoLongerPartOfSyndicate(BLSPubKey);
 
 ///////////// ------------ GHOSTS ------------- and 
 ///////////// ------------ HOOKS -------------

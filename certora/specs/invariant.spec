@@ -8,19 +8,19 @@ import "./parametric.spec"
  * last seen is GE than accumulated 
  */
 // author: rechlis
-invariant lastseenVsAccumulated(env e)
-    lastSeenETHPerCollateralizedSlotPerKnot(e) >= accumulatedETHPerCollateralizedSlotPerKnot(e)
+invariant lastseenVsAccumulated()
+    lastSeenETHPerCollateralizedSlotPerKnot() >= accumulatedETHPerCollateralizedSlotPerKnot()
 filtered { f -> notHarnessCall(f) }
 
 /**
  * knot not registered implies all its monitored velues should be zero
  */
 // author: rechlis
-invariant knotNotRegistered(method f, env e, bytes32 knot, address user)
+invariant knotNotRegistered(env e, bytes32 knot, address user)
     !isKnotRegistered(knot) => 
             sETHTotalStakeForKnot(knot) == 0                &&
             sETHStakedBalanceForKnot(knot, user) == 0       &&
-            sETHUserClaimForKnot(e, knot, user) == 0        &&
+            sETHUserClaimForKnot(knot, user) == 0        &&
             claimedPerCollateralizedSlotOwnerOfKnot(e, knot, user) == 0
 filtered { f -> notHarnessCall(f) }
 
@@ -28,8 +28,8 @@ filtered { f -> notHarnessCall(f) }
  * totalClaimed GE knot claimed
  */
 // author: rechlis
-invariant claimedPerCollateralizedVsTotal(method f, env e, bytes32 knot, address user)
-    claimedPerCollateralizedSlotOwnerOfKnot(e, knot, user) <= totalClaimed(e)
+invariant claimedPerCollateralizedVsTotal(env e, bytes32 knot, address user)
+    claimedPerCollateralizedSlotOwnerOfKnot(e, knot, user) <= totalClaimed()
     filtered { f -> notHarnessCall(f) }
 
 /**
@@ -59,7 +59,7 @@ invariant usersShouldNotHaveMoreThanTwelveEthPerKnotInvariant(bytes32 knot, addr
 invariant sameZeroTotalAndIndividualFreeFloatingShares(bytes32 knot, address user) 
     totalFreeFloatingShares() == 0 => sETHStakedBalanceForKnot(knot, user) == 0
     filtered {
-        f-> onlyHarnessCall(f)
+        f-> notHarnessCall(f)
     } 
     {
         preserved batchUpdateCollateralizedSlotOwnersAccruedETH(bytes32 knot2) with (env e2){
@@ -97,7 +97,7 @@ invariant sameZeroTotalAndIndividualFreeFloatingShares(bytes32 knot, address use
 invariant numberOfRegisteredKnotCorellation(bytes32 knot)
     knotRegistered(knot) => numberOfRegisteredKnots() > 0
     filtered {
-        f-> onlyHarnessCall(f)
+        f-> notHarnessCall(f)
     } 
     {
         preserved batchUpdateCollateralizedSlotOwnersAccruedETH(bytes32 knot2) with (env e2){
@@ -128,7 +128,7 @@ invariant numberOfRegisteredKnotCorellation(bytes32 knot)
 invariant individualLessThanTotalFreeFloatingShares(bytes32 knot, address user)
     sETHStakedBalanceForKnot(knot, user) <= totalFreeFloatingShares()
     filtered {
-        f-> onlyHarnessCall(f)
+        f-> notHarnessCall(f)
     } 
         {
         preserved batchUpdateCollateralizedSlotOwnersAccruedETH(bytes32 knot2) with (env e2){
@@ -223,7 +223,7 @@ invariant accumulatedETHPerFreeFloatingShare_gt_lastAccumulatedETHPerFreeFloatin
  */
 // author: AbhiGulati
 invariant totalStakeForKnotEqualsSumOfStakesBalances(bytes32 blsKey)
-    sumOfStakesForKnot[blsKey] == sETHTotalStakeForKnot(blsKey)
+    ghostsETHTotalStakeForKnot[blsKey] == sETHTotalStakeForKnot(blsKey)
 
 /**
  * totalETHProcessedPerCollateralizedKnot always less than or equal than accumulatedETHPerCollateralizedSlotPerKnot.
@@ -231,6 +231,7 @@ invariant totalStakeForKnotEqualsSumOfStakesBalances(bytes32 blsKey)
 // author: neomoxx
 invariant accumulatedETHPerCollateralizedSlotPerKnotGTEtotalETHProcessedPerCollateralizedKnot(bytes32 blsPubKey)
     totalETHProcessedPerCollateralizedKnot(blsPubKey) <= accumulatedETHPerCollateralizedSlotPerKnot()
+    filtered { f -> notHarnessCall(f) }
 
 /**
  * sETHTotalStake and sETHTotalStakedBalance must match.
@@ -238,17 +239,18 @@ invariant accumulatedETHPerCollateralizedSlotPerKnotGTEtotalETHProcessedPerColla
 // author: neomoxx
 invariant sETHTotalStakeGhostsMatch()
     sETHTotalStake == sETHTotalStakedBalance
+    filtered { f -> notHarnessCall(f) }
 
 /**
  * calculateETHForFreeFloatingOrCollateralizedHolders must be always greater or equal than lastSeenETHPerCollateralizedSlotPerKnot.
  */
 // author: neomoxx, edited
 invariant calculatedETHGTElastSeenETHPerCollateralizedSlotPerKnot()
-    calculateETHForFreeFloatingOrCollateralizedHolders() => lastSeenETHPerCollateralizedSlotPerKnot()
+    calculateETHForFreeFloatingOrCollateralizedHolders() >= lastSeenETHPerCollateralizedSlotPerKnot()
     filtered { f -> notHarnessCall(f) }
 
 invariant calculatedETHGTElastSeenETHPerFreeFloating()
-    calculateETHForFreeFloatingOrCollateralizedHolders() => lastSeenETHPerFreeFloating()
+    calculateETHForFreeFloatingOrCollateralizedHolders() >= lastSeenETHPerFreeFloating()
     filtered { f -> notHarnessCall(f) }
 
 /**
@@ -269,6 +271,6 @@ invariant noStakeOnBehalfOfAddressZero(bytes32 _blsPubKey)
 /**
 * validate sETHStakedBalanceForKnot is updated when sETHStakedBalanceForKnot gets updated for a user
 **/
-invariant sETHStakedBalanceForKnotInvariant()
+invariant sETHStakedBalanceForKnotInvariant(bytes32 knot)
     sETHTotalStakeForKnot(knot) == ghostsETHTotalStakeForKnot[knot]
     filtered { f -> notHarnessCall(f) }
