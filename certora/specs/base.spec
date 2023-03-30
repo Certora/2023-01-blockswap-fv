@@ -154,7 +154,7 @@ hook Sstore isNoLongerPartOfSyndicate[KEY bytes32 k] bool newState (bool oldStat
 }
 
 /**
- * Ghost 1 to account for the total stake of sETH
+ * Accounts for the total stake of sETH
  */
 ghost mathint sETHTotalStake {
     init_state axiom sETHTotalStake == 0 ;
@@ -168,23 +168,20 @@ hook Sstore sETHTotalStakeForKnot[KEY bytes32 blsPubKey] uint256 newValue (uint2
 }
 
 /**
- * Ghost 2 to account for the total stake of sETH
+ * Accounts for the total staked balance of sETH
  */
 ghost mathint sETHTotalStakedBalance {
     init_state axiom sETHTotalStakedBalance == 0 ;
 }
+
+ghost mapping(bytes32 => uint256) ghostsETHTotalStakeForKnot;
     
 /**
  * Hook to update the ghost sETHTotalStakedBalance on every change to the mapping sETHStakedBalanceForKnot
  */
-hook Sstore sETHStakedBalanceForKnot[KEY bytes32 blsPubKey][KEY address account] uint256 newValue (uint256 oldValue) STORAGE {
+hook Sstore sETHStakedBalanceForKnot[KEY bytes32 knot][KEY address account] uint256 newValue (uint256 oldValue) STORAGE {
     sETHTotalStakedBalance = sETHTotalStakedBalance + newValue - oldValue;
-}
-
-ghost mapping(bytes32 => uint256) ghostsETHTotalStakeForKnot;
-
-hook Sstore sETHStakedBalanceForKnot[KEY bytes32 knot][KEY address user] uint256 staked (uint256 old_staked) STORAGE {
-  ghostsETHTotalStakeForKnot[knot] = ghostsETHTotalStakeForKnot[knot] + staked - old_staked;
+    ghostsETHTotalStakeForKnot[knot] = ghostsETHTotalStakeForKnot[knot] + newValue - oldValue;
 }
 
 

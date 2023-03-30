@@ -10,7 +10,7 @@ import "./parametric.spec"
 // author: rechlis
 invariant lastseenVsAccumulated()
     lastSeenETHPerCollateralizedSlotPerKnot() >= accumulatedETHPerCollateralizedSlotPerKnot()
-filtered { f -> notHarnessCall(f) }
+    filtered { f -> notHarnessCall(f) }
 
 /**
  * knot not registered implies all its monitored velues should be zero
@@ -22,7 +22,7 @@ invariant knotNotRegistered(env e, bytes32 knot, address user)
             sETHStakedBalanceForKnot(knot, user) == 0       &&
             sETHUserClaimForKnot(knot, user) == 0        &&
             claimedPerCollateralizedSlotOwnerOfKnot(e, knot, user) == 0
-filtered { f -> notHarnessCall(f) }
+    filtered { f -> notHarnessCall(f) }
 
 /**
  * totalClaimed GE knot claimed

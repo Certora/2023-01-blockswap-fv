@@ -1,7 +1,4 @@
-# Call this script from root, e.g. `sh certora/scripts/verifySyndicate.sh $1 $2`
-# where $1 is a comment for the run that gives some background to the call and $2 is an 
-# optional arguement used to specify a rule, without a specified rule all rules in the 
-# spec will be ran.
+# $1 is the file you want to run, so for example `sh certora/scripts/verifySyndicate.sh unit` will run the spec with the unit tests
 if [[ "$2" ]]
 then
     RULE="--rule $2"
