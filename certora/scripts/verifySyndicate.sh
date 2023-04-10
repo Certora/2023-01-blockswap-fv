@@ -1,23 +1,29 @@
-# $1 is the file you want to run, so for example `sh certora/scripts/verifySyndicate.sh unit` will run the spec with the unit tests
-if [[ "$2" ]]
+unset RULE
+unset MSG
+
+if [[ "$1" ]]
 then
-    RULE="--rule $2"
+    RULE="--rule $1"
 fi
 
-solc-select use 0.8.13
+if [[ "$2" ]]
+then
+    MSG="- $2"
+fi
 
-certoraRun  certora/harnesses/SyndicateHarness.sol \
+certoraRun certora/harnesses/SyndicateHarness.sol \
     certora/harnesses/MockStakeHouseUniverse.sol \
     certora/harnesses/MockStakeHouseRegistry.sol \
     certora/harnesses/MockSlotSettlementRegistry.sol \
     certora/harnesses/MocksETH.sol \
-    --verify SyndicateHarness:certora/specs/$1.spec \
-    --cloud master \
+    --verify SyndicateHarness:certora/specs/Syndicate.spec \
     --optimistic_loop \
-    --optimize 1 \
-    --loop_iter 3 \
-    $RULE \
-    --rule_sanity \
-    --settings -optimisticFallback=true \
+    --loop_iter 2 \
     --packages @blockswaplab=node_modules/@blockswaplab @openzeppelin=node_modules/@openzeppelin \
-    --msg "Syndicate $1 $2"
+    --send_only \
+    --optimize 1 \
+    --settings -optimisticFallback=true \
+    --rule_sanity basic \
+    --cache syndicate \
+    $RULE \
+    --msg "Syndicate: $1 $MSG"
